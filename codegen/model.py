@@ -1052,46 +1052,6 @@ class OpenCodeInterpreterDecoder(DecoderBase):
         self.model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
         self.max_new_tokens=1024
         self.eos += ["<|EOT|>"]
-        
-    def build_humaneval_instruction(self, prompt: str):
-        return '''You are an exceptionally intelligent coding assistant that consistently delivers accurate and reliable responses to user instructions.
-
-@@ Instruction
-Here is the given code to do completion:
-```python
-{}
-```
-Please continue to complete the function with python programming language. You are not allowed to modify the given code and do the completion only. 
-
-Please return all completed codes in one code block. 
-This code block should be in the following format:
-```python
-# Your codes here
-```
-
-@@ Response
-'''.format(prompt)
-
-
-    def build_mbpp_instruction(self, prompt: str):
-        return '''You are an exceptionally intelligent coding assistant that consistently delivers accurate and reliable responses to user instructions.
-
-@@ Instruction
-Here is the given problem and test examples:
-{}
-
-Please use the python programming language to solve this problem.
-Please make sure that your code includes the functions from the test samples and that the input and output formats of these functions match the test samples.
-
-Please return all completed codes in one code block. 
-This code block should be in the following format:
-```python
-# Your codes here
-```
-
-@@ Response
-'''.format(prompt)
-        
 
     def codegen(
         self, prompt: str, do_sample: bool = True, num_samples: int = 200
@@ -1100,10 +1060,17 @@ This code block should be in the following format:
             assert not do_sample
             assert num_samples == 1
         
-        if self.dataset=="humaneval":
-            prompt=self.build_humaneval_instruction(prompt)
-        elif self.dataset=="mbpp":
-            prompt=self.build_mbpp_instruction(prompt)
+        prompt = f"""You are an exceptionally intelligent coding assistant that consistently delivers accurate and reliable responses to user instructions.
+
+@@ Instruction
+Here is a Python programming problem to solve:
+```python
+{prompt}
+```
+Please implement this function in a Python markdown code block starting with "```python" and follow the function/input/output formats.
+
+@@ Response
+"""
 
         inputs = self.tokenizer.apply_chat_template(
             [{'role': 'user', 'content': prompt }],
@@ -1529,5 +1496,34 @@ def make_model(name: str, batch_size: int = 1, temperature: float = 0.8):
                 temperature=temperature,
                 conversational=True,
             )
+        elif "cl-13b" in name:
+            return OpenCodeInterpreterDecoder(
+                batch_size=batch_size,
+                name="m-a-p/OpenCodeInterpreter-CL-13B",
+                temperature=temperature,
+                conversational=True,
+            )
+        elif "ds-1.3b" in name:
+            return OpenCodeInterpreterDecoder(
+                batch_size=batch_size,
+                name="m-a-p/OpenCodeInterpreter-DS-1.3B",
+                temperature=temperature,
+                conversational=True,
+            )
+        elif "cl-34b" in name:
+            return OpenCodeInterpreterDecoder(
+                batch_size=batch_size,
+                name="m-a-p/OpenCodeInterpreter-CL-34B",
+                temperature=temperature,
+                conversational=True,
+            )
+        elif "cl-7b" in name:
+            return OpenCodeInterpreterDecoder(
+                batch_size=batch_size,
+                name="m-a-p/OpenCodeInterpreter-CL-7B",
+                temperature=temperature,
+                conversational=True,
+            )
+
 
     raise ValueError(f"Invalid model name: {name}")
